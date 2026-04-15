@@ -1,8 +1,11 @@
-const CACHE_NAME = 'sentinel-v2';
+const CACHE_NAME = 'sentinel-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './script.js',
+  './styles.css',
+  './utils.js',
+  './app.js',
+  './tests.js',
   './manifest.json',
   './data/grid.json',
   './app.yaml',
