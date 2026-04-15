@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel Grid Harohalli</title>
+    <title>Advanced Sentinel Grid</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="./logo.svg">
     <meta name="theme-color" content="#a855f7">
@@ -30,6 +30,12 @@
         .pin-dot { width: 15px; height: 15px; border-radius: 50%; background: #cbd5e1; opacity: 0.2; transition: all 0.3s; }
         .pin-dot.filled { opacity: 1; box-shadow: 0 0 10px #a855f7; background: #a855f7; }
         #stealth-ui { display: none; position: fixed; inset: 0; background: #f8fafc; color: #000; z-index: 90; overflow-y: auto; }
+        
+        /* Battery Saver Hooks */
+        body.battery-saver .radar-wrapper { display: none !important; }
+        body.battery-saver .mesh-active #app-ui { animation: none !important; background: #020617 !important; }
+        body.battery-saver .glass-3d { box-shadow: none !important; backdrop-filter: none; background: #0f172a; border-color: #1e293b; }
+
         #app-ui { transition: opacity 0.3s; }
 
         body.protocol-red #app-ui { background: radial-gradient(circle at center, #1a0505 0%, #000000 100%) !important; }
@@ -87,6 +93,16 @@
         .text-3d { text-shadow: 1px 1px 0px rgba(255,255,255,0.1), -1px -1px 0px rgba(0,0,0,0.8), 0 4px 10px rgba(0,0,0,0.5); }
         .leaflet-container { background: #0f172a; border-radius: 1rem; }
         .leaflet-layer, .leaflet-control-zoom-in, .leaflet-control-zoom-out, .leaflet-control-attribution { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        
+        /* Pulse Marker CSS */
+        .user-pulse-marker { width: 14px; height: 14px; background-color: #ef4444; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 rgba(239, 68, 68, 0.7); animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        
+        .sentinel-beacon-marker { width: 18px; height: 18px; background-color: #10b981; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 rgba(16, 185, 129, 0.8); animation: beacon-green 2s infinite; }
+        @keyframes beacon-green { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.8); } 50% { box-shadow: 0 0 0 25px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+        /* Incoming Shadow Call Overlay */
+        #shadow-call-ui { display: none; position: fixed; inset: 0; background: linear-gradient(180deg, #1f2937, #000000); z-index: 9999; flex-direction: column; align-items: center; justify-content: space-between; padding: 4rem 2rem 6rem; color: white; }
     </style>
 </head>
 <body id="body-main" class="overflow-x-hidden font-sans">
@@ -94,7 +110,7 @@
     <!-- Login Overlay -->
     <div id="login-overlay">
         <div class="glass-3d px-10 py-12 flex flex-col items-center">
-            <img src="./logo.svg" alt="Logo" class="w-20 h-20 mb-4 drop-shadow-[0_0_15px_#a855f7]">
+            <svg class="w-20 h-20 mb-4 drop-shadow-[0_0_15px_#a855f7] text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M8 11h8"></path><path d="M12 7v8"></path></svg>
             <h1 class="text-2xl font-black tracking-widest uppercase text-white mb-2">Guardian Access</h1>
             <p class="text-slate-400 text-sm mb-8">Enter Agent Code</p>
             
@@ -123,13 +139,18 @@
     <div id="app-ui" class="opacity-0 pointer-events-none absolute inset-0 overflow-y-auto">
         <header id="main-header" class="w-full px-6 py-4 flex justify-between items-center relative z-20 bg-slate-950/60 backdrop-blur-xl border-b border-white/5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-colors duration-500 select-none">
             <div class="flex items-center gap-4">
-                <div id="logo-trigger" class="p-1 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-white/10 shadow-[inset_1px_1px_1px_rgba(255,255,255,0.1),_2px_4px_10px_rgba(0,0,0,0.5)] transform transition hover:scale-105 group cursor-pointer" ondblclick="toggleStealth(event)">
-                    <img src="./logo.svg" alt="Sentinel Logo" class="w-8 h-8 group-hover:drop-shadow-[0_0_10px_rgba(168,85,247,0.8)] transition-all">
+                <div id="logo-trigger" class="p-2 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-purple-500/30 shadow-[inset_1px_1px_1px_rgba(255,255,255,0.1),_2px_4px_10px_rgba(0,0,0,0.5)] transform transition hover:scale-105 group cursor-pointer" ondblclick="toggleStealth(event)">
+                    <!-- High-Tech Shield/Circuit Logo -->
+                    <svg class="w-7 h-7 text-purple-400 group-hover:drop-shadow-[0_0_8px_rgba(168,85,247,1)] transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <circle cx="12" cy="11" r="3"/><path d="M12 14v4"/><path d="M9 11H5"/><path d="M19 11h-4"/>
+                    </svg>
                 </div>
                 <div>
                     <h1 class="text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400 tracking-tight">GuardianGrid</h1>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold flex items-center gap-2 mt-0.5">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold flex items-center gap-2 mt-0.5" id="header-subtitle">
                         <span class="text-emerald-400">Harohalli Intel Core</span>
+                        <span id="battery-status" class="hidden border border-amber-500/30 bg-amber-500/10 text-amber-500 px-1 rounded">BATTERY SAVER</span>
                     </p>
                 </div>
             </div>
@@ -193,7 +214,7 @@
                     </div>
                     <div>
                         <div class="flex justify-between items-start">
-                            <div><h3 class="text-slate-400 text-xs font-bold uppercase tracking-[0.15em] mb-1">Probability Base</h3><h2 class="text-2xl font-black text-white text-3d mb-4">Sentinel Safe-Pass</h2></div>
+                            <div><h3 class="text-slate-400 text-xs font-bold uppercase tracking-[0.15em] mb-1">Probability Base</h3><h2 class="text-2xl font-black text-white text-3d mb-2">Sentinel Safe-Pass</h2></div>
                         </div>
                         <div id="probability-label" class="text-right text-emerald-400 font-black text-lg mb-1">--%</div>
                         <div class="w-full bg-slate-950 rounded-full h-4 border-t border-l border-black p-[2px] shadow-[inset_2px_2px_5px_rgba(0,0,0,0.8)]">
@@ -202,16 +223,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-6 bg-slate-900/50 p-4 rounded-2xl border border-white/5 shadow-inner">
-                        <div class="flex items-center gap-3">
-                            <div id="risk-icon-container" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center transition-colors">
-                                <i id="risk-icon" data-lucide="fingerprint" class="w-5 h-5 text-slate-400"></i>
-                            </div>
+                    <div class="mt-4 flex flex-col gap-2">
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-white/5 flex items-center gap-3">
+                            <i id="risk-icon" data-lucide="fingerprint" class="w-5 h-5 text-emerald-500"></i>
                             <div>
-                                <span id="risk-status" class="block text-slate-300 font-bold text-sm tracking-wide transition-colors">Active Guardians: --</span>
-                                <span id="risk-desc" class="block text-slate-500 text-xs font-medium mt-0.5">Path Integrity: Calculating...</span>
+                                <span id="risk-status" class="block text-slate-300 font-bold text-xs tracking-wide">Active Guardians: --</span>
+                                <span id="risk-desc" class="block text-emerald-500 text-[10px] uppercase font-bold tracking-widest mt-0.5">Path Integrity: Stable</span>
                             </div>
                         </div>
+                        <button onclick="requestProtocolDelta(event)" class="w-full bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-800 hover:to-indigo-800 border border-blue-500/30 text-white font-bold py-2 rounded-xl text-xs uppercase tracking-widest shadow-[inset_0_1px_2px_rgba(255,255,255,0.2),_0_0_10px_rgba(59,130,246,0.3)] transition active:scale-95 flex justify-center items-center gap-2">
+                            <i data-lucide="phone-forwarded" class="w-3.5 h-3.5"></i> Request Protocol Delta
+                        </button>
                     </div>
                 </div>
 
@@ -289,6 +311,24 @@
         
         <div class="fixed inset-x-0 bottom-0 h-40 z-50 bg-transparent" ondblclick="toggleStealth(event)" oncontextmenu="toggleStealth(event)"></div>
         <div class="fixed inset-x-0 top-0 h-20 z-50 bg-transparent" ondblclick="toggleStealth(event)" oncontextmenu="toggleStealth(event)"></div>
+    </div>
+    
+    <!-- PROTOCOL DELTA INCOMING CALL OVERLAY -->
+    <div id="shadow-call-ui">
+        <div class="text-center mt-10">
+            <h2 class="text-4xl font-light tracking-wide mb-2 text-white">Dad (Home)</h2>
+            <p class="text-lg text-slate-300">mobile</p>
+        </div>
+        <div class="flex w-full px-12 justify-between">
+            <div class="flex flex-col items-center gap-2" onclick="dismissShadowCall()">
+                <div class="w-20 h-20 rounded-full bg-red-500 shadow-lg flex items-center justify-center cursor-pointer hover:bg-red-600 active:scale-95 transition-transform"><i data-lucide="phone-off" class="w-10 h-10 text-white"></i></div>
+                <span class="text-white">Decline</span>
+            </div>
+            <div class="flex flex-col items-center gap-2" onclick="acceptShadowCall()">
+                <div class="w-20 h-20 rounded-full bg-green-500 shadow-[0_0_20px_#22c55e] flex items-center justify-center cursor-pointer hover:bg-green-600 active:scale-95 transition-transform animate-pulse"><i data-lucide="phone" class="w-10 h-10 text-white"></i></div>
+                <span class="text-white">Accept</span>
+            </div>
+        </div>
     </div>
 
     <!-- Scanline -->
